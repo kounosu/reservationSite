@@ -35,6 +35,16 @@ class ReservationTest extends TestCase
             ->assertJsonCount($monthDate->daysInMonth, 'days');
     }
 
+    public function test_reservation_page_uses_japanese_frontend_locale(): void
+    {
+        $response = $this->get(route('reservations.index'));
+
+        $response
+            ->assertOk()
+            ->assertSeeText('カレンダーを読み込み中...')
+            ->assertSee('"locale":"ja-JP"', false);
+    }
+
     public function test_user_can_create_a_reservation_and_inventory_is_updated(): void
     {
         $slotStart = CarbonImmutable::now(config('app.timezone'))->addDay()->setTime(10, 0);
@@ -51,6 +61,7 @@ class ReservationTest extends TestCase
 
         $response
             ->assertCreated()
+            ->assertJsonPath('message', '予約が確定しました。')
             ->assertJsonPath('reservation.partySize', 2)
             ->assertJsonPath('reservation.slotStart', $slotStart->format('Y-m-d H:i'));
 
@@ -82,7 +93,7 @@ class ReservationTest extends TestCase
 
         $response
             ->assertStatus(409)
-            ->assertJsonPath('message', 'The selected slot just sold out. Please choose another time.');
+            ->assertJsonPath('message', '選択した時間枠は満席になりました。別の時間を選択してください。');
 
         $this->assertDatabaseCount('reservations', 0);
     }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="ja">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,7 +14,7 @@
     </head>
     <body class="reservation-page">
         <div id="reservation-app" class="reservation-app-shell">
-            <div class="reservation-app-loading">Loading calendar...</div>
+            <div class="reservation-app-loading">カレンダーを読み込み中...</div>
         </div>
 
         <script id="reservation-config" type="application/json">{!! json_encode($frontendConfig, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>

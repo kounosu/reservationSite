@@ -22,7 +22,7 @@ class ReservationController extends Controller
                 'reservationEndpoint' => route('reservations.store'),
                 'initialMonth' => $initialMonth->format('Y-m'),
                 'initialDate' => $initialDate->toDateString(),
-                'locale' => app()->getLocale() === 'ja' ? 'ja-JP' : app()->getLocale(),
+                'locale' => 'ja-JP',
                 'settings' => $calendar->settings(),
             ],
         ]);
@@ -49,7 +49,7 @@ class ReservationController extends Controller
         $slot = $reservation->slot;
 
         return response()->json([
-            'message' => 'Reservation confirmed.',
+            'message' => '予約が確定しました。',
             'reservation' => [
                 'code' => $reservation->reservation_code,
                 'guestName' => $reservation->guest_name,
