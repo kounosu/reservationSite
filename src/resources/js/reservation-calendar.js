@@ -3,9 +3,46 @@ const configElement = document.querySelector('#reservation-config');
 
 if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElement) {
     const config = JSON.parse(configElement.textContent ?? '{}');
-    const locale = config.locale || 'en-US';
+    const locale = config.locale || 'ja-JP';
     const monthFormatter = new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long' });
     const dayFormatter = new Intl.DateTimeFormat(locale, { month: 'long', day: 'numeric', weekday: 'short' });
+    const copy = {
+        calendarTitle: '予約カレンダー',
+        previousMonth: '前の月',
+        nextMonth: '次の月',
+        hours: '営業時間',
+        slotLength: '枠時間',
+        maxParty: '最大人数',
+        weekdays: ['日', '月', '火', '水', '木', '金', '土'],
+        selectedDay: '選択した日',
+        bookingCaption: '予約枠は同時予約時でも定員超過しないよう管理されています。',
+        confirmed: '予約確定',
+        timeSlots: '時間枠',
+        reservation: '予約情報',
+        name: 'お名前',
+        email: 'メールアドレス',
+        phone: '電話番号',
+        partySize: '人数',
+        notes: 'ご要望',
+        notesPlaceholder: 'ご要望があればご記入ください。',
+        submit: 'この枠で予約する',
+        submitting: '予約を確定中...',
+        selectTimeSlot: '時間枠を選択してください',
+        chooseSlotBeforeSubmitting: '予約前に時間枠を選択してください。',
+        reservationFailed: '予約に失敗しました。時間をおいて再度お試しください。',
+        loadCalendarFailed: 'カレンダーの読み込みに失敗しました。',
+        loadingCalendar: 'カレンダーを読み込み中...',
+        loadingSlots: '時間枠を読み込み中...',
+        noBusinessHours: 'この日の営業時間は設定されていません。',
+        fullyBooked: '満席',
+        slotCount: (count) => `${count}件`,
+        slotsOpen: (availableSlots, totalSlots) => `${availableSlots}/${totalSlots}枠 受付中`,
+        compactSlotsOpen: (availableSlots, totalSlots) => `${availableSlots}/${totalSlots}枠`,
+        remainingSeats: (remainingSeats) => `残り${remainingSeats}名`,
+        compactRemainingSeats: (remainingSeats) => `残${remainingSeats}`,
+        partySizeOption: (size) => `${size}名`,
+        selectedSlotSummary: (slot) => `${slot.startTime} - ${slot.endTime} / 残り${slot.remainingSeats}名`,
+    };
 
     const state = {
         month: config.initialMonth,
@@ -116,7 +153,7 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
         const slot = getSelectedSlot();
 
         if (!slot) {
-            state.feedback = { type: 'error', text: 'Choose a time slot before submitting.' };
+            state.feedback = { type: 'error', text: copy.chooseSlotBeforeSubmitting };
             render();
             return;
         }
@@ -157,7 +194,7 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
                         .join(' '),
                 };
             } else {
-                state.feedback = { type: 'error', text: 'Reservation failed. Please try again.' };
+                state.feedback = { type: 'error', text: copy.reservationFailed };
             }
         } finally {
             state.submitting = false;
@@ -191,7 +228,7 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
 
             syncPartySize();
         } catch (_error) {
-            state.feedback = { type: 'error', text: 'Failed to load the calendar.' };
+            state.feedback = { type: 'error', text: copy.loadCalendarFailed };
         } finally {
             state.loading = false;
             render();
@@ -204,32 +241,32 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
                 <section class="calendar-panel panel-surface">
                     <header class="calendar-header">
                         <div>
-                            <p class="eyebrow">Reservation Calendar</p>
+                            <p class="eyebrow">${copy.calendarTitle}</p>
                             <h1>${escapeHtml(formatMonth(state.month))}</h1>
                         </div>
                         <div class="month-controls">
-                            <button type="button" class="icon-button" data-action="previous-month" aria-label="Previous month">&larr;</button>
-                            <button type="button" class="icon-button" data-action="next-month" aria-label="Next month">&rarr;</button>
+                            <button type="button" class="icon-button" data-action="previous-month" aria-label="${copy.previousMonth}">&larr;</button>
+                            <button type="button" class="icon-button" data-action="next-month" aria-label="${copy.nextMonth}">&rarr;</button>
                         </div>
                     </header>
 
                     <div class="calendar-meta">
                         <div>
-                            <span>Hours</span>
+                            <span>${copy.hours}</span>
                             <strong>${padNumber(config.settings.openHour)}:00 - ${padNumber(config.settings.closeHour)}:00</strong>
                         </div>
                         <div>
-                            <span>Slot</span>
-                            <strong>${config.settings.slotMinutes} min</strong>
+                            <span>${copy.slotLength}</span>
+                            <strong>${config.settings.slotMinutes}分</strong>
                         </div>
                         <div>
-                            <span>Max party</span>
-                            <strong>${config.settings.maxPartySize} guests</strong>
+                            <span>${copy.maxParty}</span>
+                            <strong>${config.settings.maxPartySize}名</strong>
                         </div>
                     </div>
 
                     <div class="calendar-weekdays">
-                        ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((weekday) => `<span>${weekday}</span>`).join('')}
+                        ${copy.weekdays.map((weekday) => `<span>${weekday}</span>`).join('')}
                     </div>
 
                     <div class="calendar-grid">
@@ -239,9 +276,9 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
 
                 <aside class="booking-panel panel-surface">
                     <section class="booking-summary">
-                        <p class="eyebrow">Selected Day</p>
+                        <p class="eyebrow">${copy.selectedDay}</p>
                         <h2>${escapeHtml(formatDate(state.selectedDate))}</h2>
-                        <p class="booking-caption">Slot inventory is protected with a database transaction so concurrent requests cannot overbook the same slot.</p>
+                        <p class="booking-caption">${copy.bookingCaption}</p>
                     </section>
 
                     ${state.feedback ? `
@@ -252,7 +289,7 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
 
                     ${state.lastReservation ? `
                         <div class="confirmation-card">
-                            <p class="confirmation-label">Confirmed</p>
+                            <p class="confirmation-label">${copy.confirmed}</p>
                             <strong>${escapeHtml(state.lastReservation.code)}</strong>
                             <span>${escapeHtml(state.lastReservation.slotStart)} - ${escapeHtml(state.lastReservation.slotEnd.slice(11))}</span>
                         </div>
@@ -260,8 +297,8 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
 
                     <section class="slot-section">
                         <div class="section-head">
-                            <h3>Time Slots</h3>
-                            <span>${state.data ? state.data.selectedSlots.length : 0} slots</span>
+                            <h3>${copy.timeSlots}</h3>
+                            <span>${copy.slotCount(state.data ? state.data.selectedSlots.length : 0)}</span>
                         </div>
                         <div class="slot-list">
                             ${buildSlotButtons()}
@@ -270,34 +307,34 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
 
                     <section class="form-section">
                         <div class="section-head">
-                            <h3>Reservation</h3>
+                            <h3>${copy.reservation}</h3>
                             <span>${selectedSlotSummary()}</span>
                         </div>
                         <form data-reservation-form="true" class="reservation-form">
                             <label>
-                                <span>Name</span>
-                                <input type="text" name="guest_name" value="${escapeHtml(state.form.guest_name)}" maxlength="80" placeholder="Hanako Yamada" required>
+                                <span>${copy.name}</span>
+                                <input type="text" name="guest_name" value="${escapeHtml(state.form.guest_name)}" maxlength="80" placeholder="山田 花子" required>
                             </label>
                             <label>
-                                <span>Email</span>
+                                <span>${copy.email}</span>
                                 <input type="email" name="guest_email" value="${escapeHtml(state.form.guest_email)}" maxlength="120" placeholder="example@example.com" required>
                             </label>
                             <label>
-                                <span>Phone</span>
+                                <span>${copy.phone}</span>
                                 <input type="text" name="guest_phone" value="${escapeHtml(state.form.guest_phone)}" maxlength="30" placeholder="090-1234-5678">
                             </label>
                             <label>
-                                <span>Party size</span>
+                                <span>${copy.partySize}</span>
                                 <select name="party_size" ${getSelectedSlot() ? '' : 'disabled'}>
                                     ${buildPartySizeOptions()}
                                 </select>
                             </label>
                             <label>
-                                <span>Notes</span>
-                                <textarea name="notes" rows="4" maxlength="500" placeholder="Any notes for the reservation.">${escapeHtml(state.form.notes)}</textarea>
+                                <span>${copy.notes}</span>
+                                <textarea name="notes" rows="4" maxlength="500" placeholder="${copy.notesPlaceholder}">${escapeHtml(state.form.notes)}</textarea>
                             </label>
                             <button type="submit" class="submit-button" ${state.submitting || !getSelectedSlot() ? 'disabled' : ''}>
-                                ${state.submitting ? 'Confirming...' : 'Book this slot'}
+                                ${state.submitting ? copy.submitting : copy.submit}
                             </button>
                         </form>
                     </section>
@@ -308,7 +345,7 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
 
     function buildCalendarCells() {
         if (!state.data) {
-            return '<div class="calendar-loading">Loading...</div>';
+            return `<div class="calendar-loading">${copy.loadingCalendar}</div>`;
         }
 
         const dayMap = Object.fromEntries(state.data.days.map((day) => [day.date, day]));
@@ -339,14 +376,31 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
             ].filter(Boolean).join(' ');
 
             const availabilityLabel = summary.availableSlots > 0
-                ? `${summary.remainingSeats} seats left`
-                : 'Fully booked';
-
+                ? copy.remainingSeats(summary.remainingSeats)
+                : copy.fullyBooked;
+            const availabilityCompactLabel = summary.availableSlots > 0
+                ? copy.compactRemainingSeats(summary.remainingSeats)
+                : copy.fullyBooked;
             cells.push(`
-                <button type="button" class="${classes}" data-day="${summary.date}">
-                    <span class="day-number">${summary.day}</span>
-                    <span class="day-meta">${summary.availableSlots}/${summary.totalSlots} open</span>
-                    <span class="day-status">${availabilityLabel}</span>
+                <button
+                    type="button"
+                    class="${classes}"
+                    data-day="${summary.date}"
+                    aria-label="${escapeHtml(`${summary.date} ${copy.slotsOpen(summary.availableSlots, summary.totalSlots)} ${availabilityLabel}`)}"
+                >
+                    <div class="day-heading">
+                        <span class="day-number">${summary.day}</span>
+                    </div>
+                    <div class="day-details">
+                        <span class="day-meta">
+                            <span class="desktop-label">${copy.slotsOpen(summary.availableSlots, summary.totalSlots)}</span>
+                            <span class="mobile-label">${copy.compactSlotsOpen(summary.availableSlots, summary.totalSlots)}</span>
+                        </span>
+                        <span class="day-status ${summary.availableSlots > 0 ? 'is-open' : 'is-full'}">
+                            <span class="desktop-label">${availabilityLabel}</span>
+                            <span class="mobile-label">${availabilityCompactLabel}</span>
+                        </span>
+                    </div>
                 </button>
             `);
         }
@@ -356,11 +410,11 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
 
     function buildSlotButtons() {
         if (!state.data) {
-            return '<p class="empty-state">Loading slots...</p>';
+            return `<p class="empty-state">${copy.loadingSlots}</p>`;
         }
 
         if (state.data.selectedSlots.length === 0) {
-            return '<p class="empty-state">No business hours are configured for this day.</p>';
+            return `<p class="empty-state">${copy.noBusinessHours}</p>`;
         }
 
         return state.data.selectedSlots.map((slot) => {
@@ -374,7 +428,7 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
             return `
                 <button type="button" class="${classes}" data-slot-start="${slot.slotStart}" ${slot.isBookable ? '' : 'disabled'}>
                     <span>${slot.startTime} - ${slot.endTime}</span>
-                    <small>${slot.remainingSeats > 0 ? `${slot.remainingSeats} seats left` : 'Fully booked'}</small>
+                    <small>${slot.remainingSeats > 0 ? copy.remainingSeats(slot.remainingSeats) : copy.fullyBooked}</small>
                 </button>
             `;
         }).join('');
@@ -387,13 +441,13 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
             : config.settings.maxPartySize;
 
         if (!selectedSlot || maxPartySize < 1) {
-            return '<option value="1">1 guest</option>';
+            return `<option value="1">${copy.partySizeOption(1)}</option>`;
         }
 
         const options = [];
 
         for (let size = 1; size <= maxPartySize; size += 1) {
-            options.push(`<option value="${size}" ${String(size) === state.form.party_size ? 'selected' : ''}>${size} guest${size > 1 ? 's' : ''}</option>`);
+            options.push(`<option value="${size}" ${String(size) === state.form.party_size ? 'selected' : ''}>${copy.partySizeOption(size)}</option>`);
         }
 
         return options.join('');
@@ -403,10 +457,10 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
         const slot = getSelectedSlot();
 
         if (!slot) {
-            return 'Select a time slot';
+            return copy.selectTimeSlot;
         }
 
-        return `${slot.startTime} - ${slot.endTime} / ${slot.remainingSeats} seats left`;
+        return copy.selectedSlotSummary(slot);
     }
 
     function getSelectedSlot() {

@@ -59,6 +59,11 @@ class ReservationCalendarService
         return $this->now()->startOfMonth();
     }
 
+    public function timezone(): string
+    {
+        return $this->timezone;
+    }
+
     public function parseMonth(?string $value): CarbonImmutable
     {
         if (! is_string($value) || $value === '') {
@@ -158,7 +163,7 @@ class ReservationCalendarService
                 ->firstOrFail();
 
             if ($slot->remaining_capacity < $partySize) {
-                throw new SlotUnavailableException('The selected slot just sold out. Please choose another time.');
+                throw new SlotUnavailableException('選択した時間枠は満席になりました。別の時間を選択してください。');
             }
 
             $reservation = $slot->reservations()->create([
@@ -168,7 +173,7 @@ class ReservationCalendarService
                 'guest_phone' => $payload['guest_phone'] ?: null,
                 'party_size' => $partySize,
                 'notes' => $payload['notes'] ?: null,
-                'status' => 'confirmed',
+                'status' => Reservation::STATUS_CONFIRMED,
             ]);
 
             $slot->forceFill([
@@ -179,6 +184,65 @@ class ReservationCalendarService
         });
 
         return $reservation->load('slot');
+    }
+
+    public function updateReservationStatus(Reservation $reservation, string $status): Reservation
+    {
+        /** @var Reservation $managedReservation */
+        $managedReservation = DB::transaction(function () use ($reservation, $status) {
+            /** @var Reservation $managedReservation */
+            $managedReservation = Reservation::query()
+                ->lockForUpdate()
+                ->findOrFail($reservation->getKey());
+
+            /** @var ReservationSlot $slot */
+            $slot = ReservationSlot::query()
+                ->whereKey($managedReservation->reservation_slot_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($managedReservation->status === $status) {
+                return $managedReservation->setRelation('slot', $slot);
+            }
+
+            if (
+                $managedReservation->status === Reservation::STATUS_CONFIRMED
+                && $status === Reservation::STATUS_CANCELLED
+            ) {
+                if ($slot->reserved_count < $managedReservation->party_size) {
+                    throw ValidationException::withMessages([
+                        'status' => '予約枠の在庫情報が不整合のため更新できません。',
+                    ]);
+                }
+
+                $slot->forceFill([
+                    'reserved_count' => $slot->reserved_count - $managedReservation->party_size,
+                ])->save();
+            }
+
+            if (
+                $managedReservation->status === Reservation::STATUS_CANCELLED
+                && $status === Reservation::STATUS_CONFIRMED
+            ) {
+                if ($slot->remaining_capacity < $managedReservation->party_size) {
+                    throw ValidationException::withMessages([
+                        'status' => '空席が足りないため、この予約を再確定できません。',
+                    ]);
+                }
+
+                $slot->forceFill([
+                    'reserved_count' => $slot->reserved_count + $managedReservation->party_size,
+                ])->save();
+            }
+
+            $managedReservation->forceFill([
+                'status' => $status,
+            ])->save();
+
+            return $managedReservation->setRelation('slot', $slot);
+        });
+
+        return $managedReservation;
     }
 
     private function defaultDateForMonth(CarbonImmutable $month): CarbonImmutable

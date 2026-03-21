@@ -32,12 +32,12 @@ class StoreReservationRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'slot_start' => 'slot',
-            'guest_name' => 'name',
-            'guest_email' => 'email address',
-            'guest_phone' => 'phone number',
-            'party_size' => 'party size',
-            'notes' => 'notes',
+            'slot_start' => '予約枠',
+            'guest_name' => 'お名前',
+            'guest_email' => 'メールアドレス',
+            'guest_phone' => '電話番号',
+            'party_size' => '人数',
+            'notes' => 'ご要望',
         ];
     }
 }
