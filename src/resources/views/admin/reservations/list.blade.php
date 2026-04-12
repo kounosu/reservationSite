@@ -32,7 +32,7 @@
                 <div>
                     <p class="eyebrow">Reservation List</p>
                     <h1>予約一覧</h1>
-                    <!-- <p class="admin-hero-copy">一覧は要点だけ表示し、詳細はモーダルで確認できます。少ない件数でも一覧全体を把握しやすくしています。</p> -->
+                    <p class="admin-hero-copy">一覧は要点だけ表示し、詳細はモーダルで確認できます。少ない件数でも一覧全体を把握しやすくしています。</p>
                 </div>
                 <div class="admin-hero-actions">
                     <a href="{{ route('admin.reservations.index') }}" class="admin-secondary-link">管理トップへ戻る</a>
