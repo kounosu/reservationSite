@@ -32,7 +32,7 @@
                 <div>
                     <p class="eyebrow">Reservation List</p>
                     <h1>予約一覧</h1>
-                    <!-- <p class="admin-hero-copy">一覧は要点だけ表示し、詳細はモーダルで確認できます。少ない件数でも一覧全体を把握しやすくしています。</p> -->
+                    <p class="admin-hero-copy">一覧は要点だけ表示し、詳細はモーダルで確認できます。少ない件数でも一覧全体を把握しやすくしています。</p>
                 </div>
                 <div class="admin-hero-actions">
                     <a href="{{ route('admin.reservations.index') }}" class="admin-secondary-link">管理トップへ戻る</a>
@@ -46,7 +46,7 @@
                         <p class="eyebrow">Filters</p>
                         <h2>絞り込み</h2>
                     </div>
-                    <!-- <p class="admin-panel-copy">来店日、状態、キーワード、表示件数をここで切り替えます。</p> -->
+                    <p class="admin-panel-copy">来店日、状態、キーワード、表示件数をここで切り替えます。</p>
                 </div>
 
                 <form method="get" class="admin-filter-form admin-filter-form-inline">
