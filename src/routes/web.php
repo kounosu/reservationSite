@@ -13,5 +13,6 @@ Route::middleware('admin.basic')
     ->as('admin.')
     ->group(function (): void {
         Route::get('/reservations', [AdminReservationController::class, 'index'])->name('reservations.index');
+        Route::get('/reservations/list', [AdminReservationController::class, 'list'])->name('reservations.list');
         Route::patch('/reservations/{reservation}', [AdminReservationController::class, 'update'])->name('reservations.update');
     });

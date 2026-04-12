@@ -33,17 +33,114 @@ class AdminReservationTest extends TestCase
         $cancelledSlot = $this->createSlot(CarbonImmutable::now(config('app.timezone'))->addDays(2)->setTime(11, 0), 4, 0);
         $hiddenReservation = $this->createReservation($cancelledSlot, 'Taro Sato', 'taro@example.com', 1, Reservation::STATUS_CANCELLED);
 
-        $response = $this->get(route('admin.reservations.index', [
+        $response = $this->get(route('admin.reservations.list', [
             'status' => Reservation::STATUS_CONFIRMED,
             'q' => 'Hanako',
         ]));
 
         $response
             ->assertOk()
-            ->assertSeeText('予約管理')
+            ->assertSeeText('予約一覧')
             ->assertSeeText($visibleReservation->reservation_code)
             ->assertSeeText('Hanako Yamada')
             ->assertDontSeeText($hiddenReservation->reservation_code);
+    }
+
+    public function test_admin_dashboard_links_to_dedicated_reservation_list_page(): void
+    {
+        $response = $this->get(route('admin.reservations.index'));
+
+        $response
+            ->assertOk()
+            ->assertSeeText('予約管理')
+            ->assertSeeText('予約一覧を開く')
+            ->assertSee(route('admin.reservations.list'), false);
+    }
+
+    public function test_admin_page_is_paginated(): void
+    {
+        $latestReservation = null;
+        $oldestReservation = null;
+
+        for ($index = 0; $index < 25; $index++) {
+            $slot = $this->createSlot(
+                CarbonImmutable::now(config('app.timezone'))->addDays($index + 1)->setTime(10, 0),
+                4,
+                1
+            );
+
+            $reservation = $this->createReservation(
+                $slot,
+                'Guest '.$index,
+                "guest{$index}@example.com",
+                1,
+                Reservation::STATUS_CONFIRMED
+            );
+
+            if ($index === 0) {
+                $oldestReservation = $reservation;
+            }
+
+            if ($index === 24) {
+                $latestReservation = $reservation;
+            }
+        }
+
+        $firstPageResponse = $this->get(route('admin.reservations.list'));
+
+        $firstPageResponse
+            ->assertOk()
+            ->assertSeeText($latestReservation?->reservation_code ?? '')
+            ->assertDontSeeText($oldestReservation?->reservation_code ?? '');
+
+        $secondPageResponse = $this->get(route('admin.reservations.list', [
+            'page' => 2,
+        ]));
+
+        $secondPageResponse
+            ->assertOk()
+            ->assertSeeText($oldestReservation?->reservation_code ?? '')
+            ->assertDontSeeText($latestReservation?->reservation_code ?? '');
+    }
+
+    public function test_admin_can_change_items_per_page(): void
+    {
+        $latestReservation = null;
+        $eleventhReservation = null;
+
+        for ($index = 0; $index < 15; $index++) {
+            $slot = $this->createSlot(
+                CarbonImmutable::now(config('app.timezone'))->addDays($index + 1)->setTime(12, 0),
+                4,
+                1
+            );
+
+            $reservation = $this->createReservation(
+                $slot,
+                'Per Page Guest '.$index,
+                "per-page-{$index}@example.com",
+                1,
+                Reservation::STATUS_CONFIRMED
+            );
+
+            if ($index === 14) {
+                $latestReservation = $reservation;
+            }
+
+            if ($index === 4) {
+                $eleventhReservation = $reservation;
+            }
+        }
+
+        $response = $this->get(route('admin.reservations.list', [
+            'per_page' => 10,
+        ]));
+
+        $response
+            ->assertOk()
+            ->assertSeeText($latestReservation?->reservation_code ?? '')
+            ->assertDontSeeText($eleventhReservation?->reservation_code ?? '')
+            ->assertSee('option value="10" selected', false);
     }
 
     public function test_admin_can_cancel_a_confirmed_reservation(): void
@@ -51,13 +148,13 @@ class AdminReservationTest extends TestCase
         $slot = $this->createSlot(CarbonImmutable::now(config('app.timezone'))->addDay()->setTime(10, 0), 4, 2);
         $reservation = $this->createReservation($slot, 'Hanako Yamada', 'hanako@example.com', 2, Reservation::STATUS_CONFIRMED);
 
-        $response = $this->from(route('admin.reservations.index'))
+        $response = $this->from(route('admin.reservations.list'))
             ->patch(route('admin.reservations.update', $reservation), [
                 'status' => Reservation::STATUS_CANCELLED,
             ]);
 
         $response
-            ->assertRedirect(route('admin.reservations.index'))
+            ->assertRedirect(route('admin.reservations.list'))
             ->assertSessionHas('status', '予約ステータスを更新しました。');
 
         $this->assertDatabaseHas('reservations', [
@@ -76,12 +173,12 @@ class AdminReservationTest extends TestCase
         $slot = $this->createSlot(CarbonImmutable::now(config('app.timezone'))->addDay()->setTime(13, 0), 4, 1);
         $reservation = $this->createReservation($slot, 'Riko Arai', 'riko@example.com', 2, Reservation::STATUS_CANCELLED);
 
-        $response = $this->from(route('admin.reservations.index'))
+        $response = $this->from(route('admin.reservations.list'))
             ->patch(route('admin.reservations.update', $reservation), [
                 'status' => Reservation::STATUS_CONFIRMED,
             ]);
 
-        $response->assertRedirect(route('admin.reservations.index'));
+        $response->assertRedirect(route('admin.reservations.list'));
 
         $this->assertDatabaseHas('reservations', [
             'id' => $reservation->id,
@@ -99,13 +196,13 @@ class AdminReservationTest extends TestCase
         $slot = $this->createSlot(CarbonImmutable::now(config('app.timezone'))->addDay()->setTime(15, 0), 4, 4);
         $reservation = $this->createReservation($slot, 'Mika Ito', 'mika@example.com', 1, Reservation::STATUS_CANCELLED);
 
-        $response = $this->from(route('admin.reservations.index'))
+        $response = $this->from(route('admin.reservations.list'))
             ->patch(route('admin.reservations.update', $reservation), [
                 'status' => Reservation::STATUS_CONFIRMED,
             ]);
 
         $response
-            ->assertRedirect(route('admin.reservations.index'))
+            ->assertRedirect(route('admin.reservations.list'))
             ->assertSessionHasErrors('status');
 
         $this->assertDatabaseHas('reservations', [

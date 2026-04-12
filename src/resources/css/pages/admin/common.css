@@ -1,0 +1,103 @@
+.admin-shell {
+    display: grid;
+    gap: 24px;
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+.admin-hero {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 28px;
+}
+
+.admin-hero h1 {
+    letter-spacing: -0.03em;
+    font-size: clamp(2rem, 3vw, 3rem);
+    font-weight: 700;
+}
+
+.admin-hero-copy,
+.admin-panel-copy {
+    color: rgba(31, 27, 24, 0.68);
+    line-height: 1.6;
+}
+
+.admin-hero-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.admin-secondary-link,
+.admin-primary-button,
+.admin-action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    color: inherit;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease, opacity 160ms ease;
+}
+
+.admin-secondary-link {
+    background: rgba(255, 251, 246, 0.88);
+}
+
+.admin-primary-button,
+.admin-action-button.is-primary {
+    border-color: rgba(199, 99, 47, 0.22);
+    background: linear-gradient(135deg, #c7632f, #da7a3a);
+    color: #fff8ef;
+    box-shadow: 0 14px 26px rgba(199, 99, 47, 0.18);
+}
+
+.admin-action-button.is-danger {
+    border-color: rgba(178, 71, 53, 0.2);
+    background: rgba(178, 71, 53, 0.1);
+    color: var(--danger);
+}
+
+.admin-secondary-link:hover,
+.admin-primary-button:hover,
+.admin-action-button:hover {
+    transform: translateY(-1px);
+}
+
+.admin-action-button:disabled {
+    opacity: 0.48;
+    box-shadow: none;
+}
+
+.admin-secondary-link.is-disabled {
+    pointer-events: none;
+    opacity: 0.46;
+}
+
+@media (max-width: 720px) {
+    .admin-hero {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 20px;
+    }
+
+    .admin-secondary-link,
+    .admin-primary-button,
+    .admin-action-button {
+        width: 100%;
+    }
+
+    .admin-hero h1 {
+        font-size: clamp(1.8rem, 8vw, 2.4rem);
+    }
+}
