@@ -8,13 +8,20 @@ use Illuminate\Validation\Rule;
 
 class UpdateAdminReservationRequest extends FormRequest
 {
+    /**
+     * 予約ステータス更新リクエストの認可可否を判定する。
+     *
+     * @return bool
+     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * @return array<string, mixed>
+     * 予約ステータス更新時のバリデーションルールを返す。
+     *
+     * @return array
      */
     public function rules(): array
     {
@@ -24,7 +31,9 @@ class UpdateAdminReservationRequest extends FormRequest
     }
 
     /**
-     * @return array<string, string>
+     * バリデーションエラー表示用の項目名を返す。
+     *
+     * @return array
      */
     public function attributes(): array
     {

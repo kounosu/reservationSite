@@ -8,13 +8,20 @@ use Illuminate\Validation\Rule;
 
 class ListAdminReservationsRequest extends FormRequest
 {
+    /**
+     * 予約一覧検索リクエストの認可可否を判定する。
+     *
+     * @return bool
+     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * @return array<string, list<string|\Illuminate\Contracts\Validation\ValidationRule>>
+     * 予約一覧検索時のバリデーションルールを返す。
+     *
+     * @return array
      */
     public function rules(): array
     {
@@ -27,7 +34,9 @@ class ListAdminReservationsRequest extends FormRequest
     }
 
     /**
-     * @return array{date: string, status: string, q: string}
+     * 予約一覧の検索条件を整形して返す。
+     *
+     * @return array
      */
     public function filters(): array
     {
@@ -40,6 +49,11 @@ class ListAdminReservationsRequest extends FormRequest
         ];
     }
 
+    /**
+     * 予約一覧の1ページあたりの表示件数を返す。
+     *
+     * @return int
+     */
     public function perPage(): int
     {
         return (int) ($this->validated('per_page') ?? 20);

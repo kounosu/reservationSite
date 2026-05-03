@@ -6,13 +6,20 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreReservationRequest extends FormRequest
 {
+    /**
+     * 予約登録リクエストの認可可否を判定する。
+     *
+     * @return bool
+     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * @return array<string, mixed>
+     * 予約登録時のバリデーションルールを返す。
+     *
+     * @return array
      */
     public function rules(): array
     {
@@ -27,7 +34,9 @@ class StoreReservationRequest extends FormRequest
     }
 
     /**
-     * @return array<string, string>
+     * バリデーションエラー表示用の項目名を返す。
+     *
+     * @return array
      */
     public function attributes(): array
     {

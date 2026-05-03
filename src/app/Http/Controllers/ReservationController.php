@@ -9,8 +9,17 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/**
+ * 利用者向け予約画面と予約APIを扱うコントローラ。
+ */
 class ReservationController extends Controller
 {
+    /**
+     * 予約カレンダー画面を表示する。
+     *
+     * @param \App\Services\ReservationCalendarService $calendar 予約カレンダー情報を生成するサービス
+     * @return \Illuminate\View\View
+     */
     public function index(ReservationCalendarService $calendar): View
     {
         $initialMonth = $calendar->currentMonth();
@@ -28,6 +37,13 @@ class ReservationController extends Controller
         ]);
     }
 
+    /**
+     * 指定された月と日付の予約カレンダー情報をJSONで返す。
+     *
+     * @param \Illuminate\Http\Request $request カレンダー表示条件を含むリクエスト
+     * @param \App\Services\ReservationCalendarService $calendar 予約カレンダー情報を生成するサービス
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function calendar(Request $request, ReservationCalendarService $calendar): JsonResponse
     {
         $month = $calendar->parseMonth($request->string('month')->toString());
@@ -36,6 +52,13 @@ class ReservationController extends Controller
         return response()->json($calendar->buildCalendar($month, $selectedDate));
     }
 
+    /**
+     * 入力内容を検証し、予約を登録する。
+     *
+     * @param \App\Http\Requests\StoreReservationRequest $request 予約登録用の検証済みリクエスト
+     * @param \App\Services\ReservationCalendarService $calendar 予約登録処理を行うサービス
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function store(StoreReservationRequest $request, ReservationCalendarService $calendar): JsonResponse
     {
         try {
