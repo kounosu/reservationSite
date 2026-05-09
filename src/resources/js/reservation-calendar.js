@@ -1,7 +1,41 @@
+/**
+ * @typedef {object} CalendarDay
+ * @property {string} date
+ * @property {number} day
+ * @property {number} availableSlots
+ * @property {number} totalSlots
+ * @property {number} remainingSeats
+ * @property {boolean} isToday
+ */
+
+/**
+ * @typedef {object} ReservationSlot
+ * @property {string} slotStart
+ * @property {string} startTime
+ * @property {string} endTime
+ * @property {number} remainingSeats
+ * @property {boolean} isBookable
+ */
+
+/**
+ * @typedef {object} ReservationCalendarData
+ * @property {string} month
+ * @property {string} selectedDate
+ * @property {CalendarDay[]} days
+ * @property {ReservationSlot[]} selectedSlots
+ */
+
+/**
+ * @typedef {object} ReservationFeedback
+ * @property {'success'|'error'} type
+ * @property {string} text
+ */
+
 const appElement = document.querySelector('#reservation-app');
 const configElement = document.querySelector('#reservation-config');
 
 if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElement) {
+    /** @type {Record<string, any>} */
     const config = JSON.parse(configElement.textContent ?? '{}');
     const locale = config.locale || 'ja-JP';
     const monthFormatter = new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long' });
@@ -44,6 +78,18 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
         selectedSlotSummary: (slot) => `${slot.startTime} - ${slot.endTime} / 残り${slot.remainingSeats}名`,
     };
 
+    /** @type {{
+     *     month: string,
+     *     selectedDate: string,
+     *     selectedSlotStart: string|null,
+     *     data: ReservationCalendarData|null,
+     *     loading: boolean,
+     *     submitting: boolean,
+     *     feedback: ReservationFeedback|null,
+     *     lastReservation: Record<string, any>|null,
+     *     form: Record<string, string>
+     * }}
+     */
     const state = {
         month: config.initialMonth,
         selectedDate: config.initialDate,
@@ -69,6 +115,11 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
 
     loadCalendar();
 
+    /**
+     * カレンダー内の月移動、日付選択、時間枠選択のクリックを処理する。
+     *
+     * @param {MouseEvent} event
+     */
     function handleClick(event) {
         const target = event.target instanceof HTMLElement ? event.target : null;
 
@@ -129,6 +180,11 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
         }
     }
 
+    /**
+     * 予約フォームの入力値を状態へ反映する。
+     *
+     * @param {InputEvent|Event} event
+     */
     function handleInput(event) {
         const target = event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement
             ? event.target
@@ -141,6 +197,12 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
         state.form[target.name] = target.value;
     }
 
+    /**
+     * 予約フォーム送信を処理し、APIの結果に応じて画面状態を更新する。
+     *
+     * @param {SubmitEvent} event
+     * @returns {Promise<void>}
+     */
     async function handleSubmit(event) {
         const form = event.target instanceof HTMLFormElement ? event.target : null;
 
@@ -202,6 +264,12 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
         }
     }
 
+    /**
+     * カレンダーAPIから現在の月と選択日の表示データを読み込む。
+     *
+     * @param {{silent?: boolean}} options
+     * @returns {Promise<void>}
+     */
     async function loadCalendar(options = {}) {
         const { silent = false } = options;
 
@@ -235,6 +303,9 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
         }
     }
 
+    /**
+     * 現在の状態をもとに予約カレンダー全体を描画する。
+     */
     function render() {
         appElement.innerHTML = `
             <main class="reservation-layout">
@@ -343,6 +414,11 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
         `;
     }
 
+    /**
+     * 月表示グリッドのHTMLを生成する。
+     *
+     * @returns {string}
+     */
     function buildCalendarCells() {
         if (!state.data) {
             return `<div class="calendar-loading">${copy.loadingCalendar}</div>`;
@@ -408,6 +484,11 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
         return cells.join('');
     }
 
+    /**
+     * 選択日の時間枠ボタン一覧HTMLを生成する。
+     *
+     * @returns {string}
+     */
     function buildSlotButtons() {
         if (!state.data) {
             return `<p class="empty-state">${copy.loadingSlots}</p>`;
@@ -434,6 +515,11 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
         }).join('');
     }
 
+    /**
+     * 選択中の予約枠に応じた人数選択肢HTMLを生成する。
+     *
+     * @returns {string}
+     */
     function buildPartySizeOptions() {
         const selectedSlot = getSelectedSlot();
         const maxPartySize = selectedSlot
@@ -453,6 +539,11 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
         return options.join('');
     }
 
+    /**
+     * 選択中の予約枠の要約テキストを返す。
+     *
+     * @returns {string}
+     */
     function selectedSlotSummary() {
         const slot = getSelectedSlot();
 
@@ -463,10 +554,21 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
         return copy.selectedSlotSummary(slot);
     }
 
+    /**
+     * 現在選択されている予約枠を返す。
+     *
+     * @returns {ReservationSlot|null}
+     */
     function getSelectedSlot() {
         return findSlot(state.selectedSlotStart);
     }
 
+    /**
+     * 開始日時に一致する予約枠を検索する。
+     *
+     * @param {string|null} slotStart
+     * @returns {ReservationSlot|null}
+     */
     function findSlot(slotStart) {
         if (!state.data || !slotStart) {
             return null;
@@ -475,6 +577,9 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
         return state.data.selectedSlots.find((slot) => slot.slotStart === slotStart) || null;
     }
 
+    /**
+     * 選択中の予約枠の残席数に合わせて人数入力を補正する。
+     */
     function syncPartySize() {
         const selectedSlot = getSelectedSlot();
 
@@ -490,18 +595,37 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
         }
     }
 
+    /**
+     * 年月文字列を表示用の月名へ整形する。
+     *
+     * @param {string} monthValue
+     * @returns {string}
+     */
     function formatMonth(monthValue) {
         const [year, month] = monthValue.split('-').map(Number);
 
         return monthFormatter.format(new Date(year, month - 1, 1, 12, 0, 0));
     }
 
+    /**
+     * 日付文字列を表示用の日付へ整形する。
+     *
+     * @param {string} dateValue
+     * @returns {string}
+     */
     function formatDate(dateValue) {
         const [year, month, day] = dateValue.split('-').map(Number);
 
         return dayFormatter.format(new Date(year, month - 1, day, 12, 0, 0));
     }
 
+    /**
+     * 年月文字列を指定月数だけ移動する。
+     *
+     * @param {string} monthValue
+     * @param {number} offset
+     * @returns {string}
+     */
     function shiftMonth(monthValue, offset) {
         const [year, month] = monthValue.split('-').map(Number);
         const shifted = new Date(year, month - 1 + offset, 1, 12, 0, 0);
@@ -509,6 +633,13 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
         return `${shifted.getFullYear()}-${padNumber(shifted.getMonth() + 1)}`;
     }
 
+    /**
+     * 選択日の日部分を維持しつつ、指定月内に収まる日付へ補正する。
+     *
+     * @param {string} dateValue
+     * @param {string} monthValue
+     * @returns {string}
+     */
     function alignDateToMonth(dateValue, monthValue) {
         const day = Number(dateValue.split('-')[2] || 1);
         const [year, month] = monthValue.split('-').map(Number);
@@ -517,10 +648,22 @@ if (appElement instanceof HTMLElement && configElement instanceof HTMLScriptElem
         return `${monthValue}-${padNumber(Math.min(day, maxDay))}`;
     }
 
+    /**
+     * 数値を2桁の文字列へゼロ埋めする。
+     *
+     * @param {number} value
+     * @returns {string}
+     */
     function padNumber(value) {
         return String(value).padStart(2, '0');
     }
 
+    /**
+     * HTMLへ挿入する値をエスケープする。
+     *
+     * @param {unknown} value
+     * @returns {string}
+     */
     function escapeHtml(value) {
         return String(value ?? '')
             .replaceAll('&', '&amp;')
