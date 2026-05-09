@@ -21,7 +21,7 @@ class UpdateAdminReservationRequest extends FormRequest
     /**
      * 予約ステータス更新時のバリデーションルールを返す。
      *
-     * @return array
+     * @return array<string, list<mixed>>
      */
     public function rules(): array
     {
@@ -33,7 +33,7 @@ class UpdateAdminReservationRequest extends FormRequest
     /**
      * バリデーションエラー表示用の項目名を返す。
      *
-     * @return array
+     * @return array<string, string>
      */
     public function attributes(): array
     {

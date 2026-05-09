@@ -15,6 +15,9 @@ class AdminReservationTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * 各テストの前処理を実行する。
+     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -25,6 +28,9 @@ class AdminReservationTest extends TestCase
         ]);
     }
 
+    /**
+     * 管理画面で予約一覧を表示し、条件で絞り込めることを検証する。
+     */
     public function test_admin_page_lists_and_filters_reservations(): void
     {
         $slot = $this->createSlot(CarbonImmutable::now(config('app.timezone'))->addDay()->setTime(10, 0), 4, 2);
@@ -46,6 +52,9 @@ class AdminReservationTest extends TestCase
             ->assertDontSeeText($hiddenReservation->reservation_code);
     }
 
+    /**
+     * 管理ダッシュボードから予約一覧ページへ遷移できることを検証する。
+     */
     public function test_admin_dashboard_links_to_dedicated_reservation_list_page(): void
     {
         $response = $this->get(route('admin.reservations.index'));
@@ -57,6 +66,9 @@ class AdminReservationTest extends TestCase
             ->assertSee(route('admin.reservations.list'), false);
     }
 
+    /**
+     * 管理画面の予約一覧がページネーションされることを検証する。
+     */
     public function test_admin_page_is_paginated(): void
     {
         $latestReservation = null;
@@ -103,6 +115,9 @@ class AdminReservationTest extends TestCase
             ->assertDontSeeText($latestReservation?->reservation_code ?? '');
     }
 
+    /**
+     * 管理者が1ページあたりの表示件数を変更できることを検証する。
+     */
     public function test_admin_can_change_items_per_page(): void
     {
         $latestReservation = null;
@@ -143,6 +158,9 @@ class AdminReservationTest extends TestCase
             ->assertSee('option value="10" selected', false);
     }
 
+    /**
+     * 管理者が確定済み予約をキャンセルできることを検証する。
+     */
     public function test_admin_can_cancel_a_confirmed_reservation(): void
     {
         $slot = $this->createSlot(CarbonImmutable::now(config('app.timezone'))->addDay()->setTime(10, 0), 4, 2);
@@ -168,6 +186,9 @@ class AdminReservationTest extends TestCase
         ]);
     }
 
+    /**
+     * 空席がある場合にキャンセル済み予約を再確定できることを検証する。
+     */
     public function test_admin_can_reconfirm_a_cancelled_reservation_when_capacity_is_available(): void
     {
         $slot = $this->createSlot(CarbonImmutable::now(config('app.timezone'))->addDay()->setTime(13, 0), 4, 1);
@@ -191,6 +212,9 @@ class AdminReservationTest extends TestCase
         ]);
     }
 
+    /**
+     * 満席の予約枠ではキャンセル済み予約を再確定できないことを検証する。
+     */
     public function test_admin_cannot_reconfirm_a_cancelled_reservation_when_the_slot_is_full(): void
     {
         $slot = $this->createSlot(CarbonImmutable::now(config('app.timezone'))->addDay()->setTime(15, 0), 4, 4);
@@ -216,6 +240,9 @@ class AdminReservationTest extends TestCase
         ]);
     }
 
+    /**
+     * テスト用の予約枠を作成する。
+     */
     private function createSlot(CarbonImmutable $slotStart, int $capacity, int $reservedCount): ReservationSlot
     {
         return ReservationSlot::create([
@@ -226,6 +253,9 @@ class AdminReservationTest extends TestCase
         ]);
     }
 
+    /**
+     * テスト用の予約を作成する。
+     */
     private function createReservation(
         ReservationSlot $slot,
         string $guestName,

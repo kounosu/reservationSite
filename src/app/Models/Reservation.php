@@ -30,6 +30,8 @@ class Reservation extends Model
     ];
 
     /**
+     * 型変換する属性を返す。
+     *
      * @return array<string, string>
      */
     protected function casts(): array
@@ -39,12 +41,17 @@ class Reservation extends Model
         ];
     }
 
+    /**
+     * この予約が属する予約枠を返す。
+     */
     public function slot(): BelongsTo
     {
         return $this->belongsTo(ReservationSlot::class, 'reservation_slot_id');
     }
 
     /**
+     * 予約ステータスの表示ラベルを返す。
+     *
      * @return array<string, string>
      */
     public static function statusLabels(): array

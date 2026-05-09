@@ -11,6 +11,9 @@ class ReservationTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * 各テストの前処理を実行する。
+     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -18,6 +21,9 @@ class ReservationTest extends TestCase
         $this->withoutMiddleware();
     }
 
+    /**
+     * カレンダーAPIが月単位の表示データを返すことを検証する。
+     */
     public function test_calendar_endpoint_returns_month_data(): void
     {
         $monthDate = CarbonImmutable::now(config('app.timezone'))->startOfMonth();
@@ -35,6 +41,9 @@ class ReservationTest extends TestCase
             ->assertJsonCount($monthDate->daysInMonth, 'days');
     }
 
+    /**
+     * 予約画面が日本語フロントエンドロケールを使用することを検証する。
+     */
     public function test_reservation_page_uses_japanese_frontend_locale(): void
     {
         $response = $this->get(route('reservations.index'));
@@ -45,6 +54,9 @@ class ReservationTest extends TestCase
             ->assertSee('"locale":"ja-JP"', false);
     }
 
+    /**
+     * 利用者が予約を作成でき、予約枠在庫が更新されることを検証する。
+     */
     public function test_user_can_create_a_reservation_and_inventory_is_updated(): void
     {
         $slotStart = CarbonImmutable::now(config('app.timezone'))->addDay()->setTime(10, 0);
@@ -77,6 +89,9 @@ class ReservationTest extends TestCase
         ]);
     }
 
+    /**
+     * 満席の予約枠では競合レスポンスを返すことを検証する。
+     */
     public function test_full_slot_returns_conflict(): void
     {
         $slotStart = CarbonImmutable::now(config('app.timezone'))->addDay()->setTime(11, 0);
@@ -98,6 +113,9 @@ class ReservationTest extends TestCase
         $this->assertDatabaseCount('reservations', 0);
     }
 
+    /**
+     * テスト用の予約枠を作成する。
+     */
     private function createSlot(CarbonImmutable $slotStart, int $capacity, int $reservedCount): ReservationSlot
     {
         return ReservationSlot::create([

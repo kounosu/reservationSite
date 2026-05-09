@@ -9,6 +9,8 @@ use Symfony\Component\HttpFoundation\Response;
 class AdminBasicAuth
 {
     /**
+     * 管理画面へのBasic認証を検証する。
+     *
      * @param  Closure(Request): Response  $next
      */
     public function handle(Request $request, Closure $next): Response

@@ -7,10 +7,16 @@ use Carbon\CarbonImmutable;
 
 class ViewAdminReservationsDashboardUseCase
 {
+    /**
+     * 予約管理ダッシュボード表示ユースケースを生成する。
+     */
     public function __construct(
         private readonly AdminReservationRepository $reservations,
     ) {}
 
+    /**
+     * 指定タイムゾーンの予約管理ダッシュボード表示データを生成する。
+     */
     public function handle(string $timezone): AdminReservationsDashboardViewData
     {
         $summary = $this->reservations->summarize($timezone);

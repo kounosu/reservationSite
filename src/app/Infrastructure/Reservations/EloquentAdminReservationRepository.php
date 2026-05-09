@@ -11,11 +11,13 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class EloquentAdminReservationRepository implements AdminReservationRepository
 {
+    /**
+     * 検索条件に一致する予約をページネーション付きで取得する。
+     */
     public function paginate(AdminReservationFilters $filters, int $perPage): LengthAwarePaginator
     {
-        return Reservation::query()
+        return $this->reservationQuery()
             ->select('reservations.*')
-            ->join('reservation_slots', 'reservation_slots.id', '=', 'reservations.reservation_slot_id')
             ->with('slot')
             ->when($filters->date !== '', function (Builder $query) use ($filters): void {
                 $query->whereDate('reservation_slots.slot_start', $filters->date);
@@ -40,29 +42,51 @@ class EloquentAdminReservationRepository implements AdminReservationRepository
             ->withQueryString();
     }
 
+    /**
+     * 管理画面ダッシュボード用の予約集計値を取得する。
+     *
+     * @return array{
+     *     todayReservations: int,
+     *     upcomingGuests: int,
+     *     confirmedReservations: int,
+     *     cancelledReservations: int
+     * }
+     */
     public function summarize(string $timezone): array
     {
         $now = CarbonImmutable::now($timezone);
         $today = $now->toDateString();
-
-        $baseQuery = Reservation::query()
-            ->join('reservation_slots', 'reservation_slots.id', '=', 'reservations.reservation_slot_id');
+        $baseQuery = $this->reservationQuery();
+        $confirmedQuery = $this->reservationsWithStatus($baseQuery, Reservation::STATUS_CONFIRMED);
 
         return [
-            'todayReservations' => (clone $baseQuery)
-                ->where('reservations.status', Reservation::STATUS_CONFIRMED)
+            'todayReservations' => (clone $confirmedQuery)
                 ->whereDate('reservation_slots.slot_start', $today)
                 ->count('reservations.id'),
-            'upcomingGuests' => (int) (clone $baseQuery)
-                ->where('reservations.status', Reservation::STATUS_CONFIRMED)
+            'upcomingGuests' => (int) (clone $confirmedQuery)
                 ->where('reservation_slots.slot_start', '>=', $now->toDateTimeString())
                 ->sum('reservations.party_size'),
-            'confirmedReservations' => (clone $baseQuery)
-                ->where('reservations.status', Reservation::STATUS_CONFIRMED)
-                ->count('reservations.id'),
-            'cancelledReservations' => (clone $baseQuery)
-                ->where('reservations.status', Reservation::STATUS_CANCELLED)
+            'confirmedReservations' => (clone $confirmedQuery)->count('reservations.id'),
+            'cancelledReservations' => $this
+                ->reservationsWithStatus($baseQuery, Reservation::STATUS_CANCELLED)
                 ->count('reservations.id'),
         ];
+    }
+
+    /**
+     * 予約枠を結合した予約クエリを生成する。
+     */
+    private function reservationQuery(): Builder
+    {
+        return Reservation::query()
+            ->join('reservation_slots', 'reservation_slots.id', '=', 'reservations.reservation_slot_id');
+    }
+
+    /**
+     * 指定ステータスの予約に絞り込んだクエリを生成する。
+     */
+    private function reservationsWithStatus(Builder $query, string $status): Builder
+    {
+        return (clone $query)->where('reservations.status', $status);
     }
 }

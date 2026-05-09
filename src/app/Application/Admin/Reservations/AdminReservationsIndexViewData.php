@@ -7,6 +7,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 readonly class AdminReservationsIndexViewData
 {
     /**
+     * 予約一覧画面の表示データを生成する。
+     *
      * @param  array{date: string, status: string, q: string}  $filters
      * @param  array<string, string>  $statusLabels
      * @param  list<string>  $statusOptions
@@ -26,6 +28,8 @@ readonly class AdminReservationsIndexViewData
     ) {}
 
     /**
+     * ビューへ渡す配列へ変換する。
+     *
      * @return array{
      *     filters: array{date: string, status: string, q: string},
      *     reservations: LengthAwarePaginator,

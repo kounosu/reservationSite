@@ -21,7 +21,7 @@ class ListAdminReservationsRequest extends FormRequest
     /**
      * 予約一覧検索時のバリデーションルールを返す。
      *
-     * @return array
+     * @return array<string, list<mixed>>
      */
     public function rules(): array
     {
@@ -36,7 +36,7 @@ class ListAdminReservationsRequest extends FormRequest
     /**
      * 予約一覧の検索条件を整形して返す。
      *
-     * @return array
+     * @return array{date: string, status: string, q: string}
      */
     public function filters(): array
     {

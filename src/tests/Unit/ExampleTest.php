@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 class ExampleTest extends TestCase
 {
     /**
-     * A basic test example.
+     * 真偽値の基本的なアサーションを検証する。
      */
     public function test_that_true_is_true(): void
     {

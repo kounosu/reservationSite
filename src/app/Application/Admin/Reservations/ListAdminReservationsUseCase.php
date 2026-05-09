@@ -15,10 +15,16 @@ class ListAdminReservationsUseCase
      */
     private const PER_PAGE_OPTIONS = [10, 20, 50, 100];
 
+    /**
+     * 予約一覧表示ユースケースを生成する。
+     */
     public function __construct(
         private readonly AdminReservationRepository $reservations,
     ) {}
 
+    /**
+     * 予約一覧画面の表示データを生成する。
+     */
     public function handle(ListAdminReservationsInput $input): AdminReservationsIndexViewData
     {
         $statusLabels = Reservation::statusLabels();
@@ -37,34 +43,31 @@ class ListAdminReservationsUseCase
     }
 
     /**
+     * 現在適用中の検索条件を表示用ラベルへ変換する。
+     *
      * @param  array<string, string>  $statusLabels
      * @return list<array{label: string, value: string}>
      */
     private function buildActiveFilters(AdminReservationFilters $filters, array $statusLabels): array
     {
-        $activeFilters = [];
-
-        if ($filters->date !== '') {
-            $activeFilters[] = [
+        $activeFilters = [
+            [
                 'label' => '来店日',
                 'value' => $filters->date,
-            ];
-        }
-
-        if ($filters->status !== '') {
-            $activeFilters[] = [
+            ],
+            [
                 'label' => '状態',
-                'value' => $statusLabels[$filters->status] ?? $filters->status,
-            ];
-        }
-
-        if ($filters->keyword !== '') {
-            $activeFilters[] = [
+                'value' => $filters->status === '' ? '' : ($statusLabels[$filters->status] ?? $filters->status),
+            ],
+            [
                 'label' => '検索',
-                'value' => Str::limit($filters->keyword, 24),
-            ];
-        }
+                'value' => $filters->keyword === '' ? '' : Str::limit($filters->keyword, 24),
+            ],
+        ];
 
-        return $activeFilters;
+        return array_values(array_filter(
+            $activeFilters,
+            fn (array $filter): bool => $filter['value'] !== ''
+        ));
     }
 }

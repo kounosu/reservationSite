@@ -22,6 +22,8 @@ class ReservationSlot extends Model
     ];
 
     /**
+     * 型変換する属性を返す。
+     *
      * @return array<string, string>
      */
     protected function casts(): array
@@ -32,11 +34,17 @@ class ReservationSlot extends Model
         ];
     }
 
+    /**
+     * この予約枠に紐づく予約一覧を返す。
+     */
     public function reservations(): HasMany
     {
         return $this->hasMany(Reservation::class);
     }
 
+    /**
+     * 残席数を算出する。
+     */
     public function getRemainingCapacityAttribute(): int
     {
         return max(0, $this->capacity - $this->reserved_count);

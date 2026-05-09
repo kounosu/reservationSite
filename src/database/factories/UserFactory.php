@@ -12,12 +12,12 @@ use Illuminate\Support\Str;
 class UserFactory extends Factory
 {
     /**
-     * The current password being used by the factory.
+     * ファクトリで再利用する現在のパスワード。
      */
     protected static ?string $password;
 
     /**
-     * Define the model's default state.
+     * モデルの既定状態を定義する。
      *
      * @return array<string, mixed>
      */
@@ -33,7 +33,7 @@ class UserFactory extends Factory
     }
 
     /**
-     * Indicate that the model's email address should be unverified.
+     * メールアドレス未確認の状態を付与する。
      */
     public function unverified(): static
     {

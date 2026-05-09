@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * キューと失敗ジョブ関連テーブルを作成する。
      */
     public function up(): void
     {
@@ -46,7 +46,7 @@ return new class extends Migration
     }
 
     /**
-     * Reverse the migrations.
+     * キューと失敗ジョブ関連テーブルを削除する。
      */
     public function down(): void
     {

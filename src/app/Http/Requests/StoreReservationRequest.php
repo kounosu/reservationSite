@@ -19,7 +19,7 @@ class StoreReservationRequest extends FormRequest
     /**
      * 予約登録時のバリデーションルールを返す。
      *
-     * @return array
+     * @return array<string, list<mixed>>
      */
     public function rules(): array
     {
@@ -36,7 +36,7 @@ class StoreReservationRequest extends FormRequest
     /**
      * バリデーションエラー表示用の項目名を返す。
      *
-     * @return array
+     * @return array<string, string>
      */
     public function attributes(): array
     {

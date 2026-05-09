@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * ユーザー、パスワードリセット、セッションのテーブルを作成する。
      */
     public function up(): void
     {
@@ -38,7 +38,7 @@ return new class extends Migration
     }
 
     /**
-     * Reverse the migrations.
+     * ユーザー、パスワードリセット、セッションのテーブルを削除する。
      */
     public function down(): void
     {
